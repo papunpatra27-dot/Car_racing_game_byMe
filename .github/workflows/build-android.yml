@@ -32,12 +32,12 @@ jobs:
 
       - name: Install dependencies & build web game
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run build
 
       - name: Add Capacitor Android & sync assets
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
           if [ ! -d "android" ]; then
             npx cap add android
           fi

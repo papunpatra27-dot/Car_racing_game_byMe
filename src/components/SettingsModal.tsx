@@ -144,11 +144,11 @@ jobs:
           fi
       - name: Build Web Game
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run build
       - name: Sync Capacitor Android
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
           if [ ! -d "android" ]; then
             npx cap add android
           fi
@@ -185,9 +185,9 @@ jobs:
 
 ## Option B: Local Build with Capacitor (Offline Native Android App)
 \`\`\`bash
-npm install
+npm install --legacy-peer-deps
 npm run build
-npm install @capacitor/core @capacitor/cli @capacitor/android
+npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
 npx cap add android
 npx cap sync android
 cd android
