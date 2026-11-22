@@ -136,7 +136,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - name: Accept Android SDK Licenses
+        run: |
+          SDKMANAGER=$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager | head -n 1)
+          if [ -n "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null || true
+          fi
       - name: Build Web Game
         run: |
           npm install
@@ -162,8 +167,8 @@ jobs:
         with:
           name: new-baby-driver-android-builds
           path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
 `;
 
     const readme = `# New Baby Driver — Android (.APK) & Google Play Store (.AAB) Guide
