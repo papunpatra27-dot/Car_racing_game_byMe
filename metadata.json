@@ -1,0 +1,6 @@
+{
+  "name": "New Baby Driver",
+  "description": "First-person 3D cockpit highway racing game for Android and web featuring 100 progressive road levels, a customizable car garage, and engine, speed, and fuel upgrades.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
