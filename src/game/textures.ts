@@ -70,7 +70,122 @@ export function createRoadTexture(
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = THREE.ClampToEdgeWrapping;
   tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(1, 24);
+  tex.repeat.set(1, 20);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = maxAnisotropy;
+  return tex;
+}
+
+export function createCityBuildingTextures(
+  maxAnisotropy: number
+): THREE.CanvasTexture[] {
+  const palettes = [
+    { wall: '#334155', frame: '#1e293b', glass: '#7dd3fc', lit: '#fef08a', band: '#475569' },
+    { wall: '#785a46', frame: '#4a3528', glass: '#93c5fd', lit: '#fde68a', band: '#574134' },
+    { wall: '#272b35', frame: '#151820', glass: '#60a5fa', lit: '#fcd34d', band: '#374151' },
+    { wall: '#64748b', frame: '#334155', glass: '#bae6fd', lit: '#fed7aa', band: '#475569' },
+  ];
+
+  return palettes.map((pal, idx) => {
+    const w = 256;
+    const h = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.fillStyle = pal.wall;
+    ctx.fillRect(0, 0, w, h);
+
+    // Concrete horizontal floor bands + vertical pilasters
+    const floors = 12;
+    const cols = 6;
+    const floorH = (h - 68) / floors;
+    const colW = w / cols;
+
+    for (let f = 0; f < floors; f++) {
+      const fy = f * floorH + 8;
+      // Floor slab ledge
+      ctx.fillStyle = pal.band;
+      ctx.fillRect(0, fy - 4, w, 5);
+
+      for (let c = 0; c < cols; c++) {
+        const wx = c * colW + 7;
+        const wy = fy + 4;
+        const ww = colW - 14;
+        const wh = floorH - 12;
+
+        // Window frame
+        ctx.fillStyle = pal.frame;
+        ctx.fillRect(wx - 2, wy - 2, ww + 4, wh + 4);
+
+        // Glass gradient + occasional warm lit office window
+        const isLit = ((f * 7 + c * 13 + idx * 5) % 5) === 0;
+        if (isLit) {
+          ctx.fillStyle = pal.lit;
+          ctx.fillRect(wx, wy, ww, wh);
+        } else {
+          const g = ctx.createLinearGradient(wx, wy, wx, wy + wh);
+          g.addColorStop(0, pal.glass);
+          g.addColorStop(1, '#1e3a5f');
+          ctx.fillStyle = g;
+          ctx.fillRect(wx, wy, ww, wh);
+          // Subtle diagonal sky reflection sheen
+          ctx.fillStyle = 'rgba(255,255,255,0.22)';
+          ctx.fillRect(wx + 2, wy + 2, ww * 0.38, wh * 0.65);
+        }
+      }
+    }
+
+    // Ground floor commercial storefront lobby
+    const groundY = h - 64;
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, groundY, w, 64);
+    ctx.fillStyle = idx % 2 === 0 ? '#f59e0b' : '#38bdf8';
+    ctx.fillRect(0, groundY, w, 6);
+    for (let c = 0; c < 4; c++) {
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(c * 64 + 10, groundY + 14, 44, 40);
+      ctx.fillStyle = 'rgba(15,23,42,0.35)';
+      ctx.fillRect(c * 64 + 10, groundY + 14, 44, 14);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = maxAnisotropy;
+    return tex;
+  });
+}
+
+export function createBoostPadTexture(maxAnisotropy: number): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 256, 512);
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(8, 8, 240, 496);
+
+  for (let i = 0; i < 3; i++) {
+    const yBase = 135 + i * 130;
+    ctx.fillStyle = i === 0 ? '#38bdf8' : i === 1 ? '#22d3ee' : '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(42, yBase + 48);
+    ctx.lineTo(128, yBase - 32);
+    ctx.lineTo(214, yBase + 48);
+    ctx.lineTo(214, yBase + 16);
+    ctx.lineTo(128, yBase - 64);
+    ctx.lineTo(42, yBase + 16);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = maxAnisotropy;
   return tex;

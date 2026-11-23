@@ -37,6 +37,7 @@ import {
   LEVELS,
   loadSaveState,
   persistSaveState,
+  TOTAL_LEVELS,
 } from './game/data';
 import { RacingCanvas } from './game/RacingCanvas';
 import type {
@@ -57,7 +58,7 @@ const INITIAL_TELEMETRY: LiveTelemetry = {
   fuelPct: 100,
   integrityPct: 100,
   distanceM: 0,
-  targetDistanceM: 1100,
+  targetDistanceM: 1000,
   score: 0,
   sessionCoins: 0,
   closePasses: 0,
@@ -72,6 +73,8 @@ export default function App() {
   const [status, setStatus] = useState<GameStatus>('menu');
   const [activeLevel, setActiveLevel] = useState<LevelConfig | null>(LEVELS[0]);
   const [endlessBiome, setEndlessBiome] = useState<BiomeId>('city');
+  const [menuPreviewEndless, setMenuPreviewEndless] = useState(false);
+  const [showMiniCar, setShowMiniCar] = useState(true);
   const [runNonce, setRunNonce] = useState(1);
 
   const [showGarage, setShowGarage] = useState(false);
@@ -96,6 +99,7 @@ export default function App() {
     throttle: false,
     brake: false,
     boost: false,
+    horn: false,
   });
 
   const audio = useMemo(() => new RacingAudioEngine(), []);
@@ -139,12 +143,42 @@ export default function App() {
   );
 
   const cycleCamera = useCallback(() => {
-    const order: CameraPreset[] = ['cockpit', 'dash', 'hood'];
+    const order: CameraPreset[] = ['cockpit', 'chase', 'dash', 'hood'];
     setSave((prev) => {
       const next = order[(order.indexOf(prev.cameraPreset) + 1) % order.length];
       return { ...prev, cameraPreset: next };
     });
   }, []);
+
+  const handleToggleMotionSteer = useCallback(async () => {
+    const turningOn =
+      save.controlMode !== 'arrows_motion' && save.controlMode !== 'tilt';
+    if (turningOn) {
+      const DevOrient = DeviceOrientationEvent as unknown as {
+        requestPermission?: () => Promise<'granted' | 'denied'>;
+      };
+      if (typeof DevOrient?.requestPermission === 'function') {
+        try {
+          await DevOrient.requestPermission();
+        } catch {
+          // ignore
+        }
+      }
+      const DevMotion = DeviceMotionEvent as unknown as {
+        requestPermission?: () => Promise<'granted' | 'denied'>;
+      };
+      if (typeof DevMotion?.requestPermission === 'function') {
+        try {
+          await DevMotion.requestPermission();
+        } catch {
+          // ignore
+        }
+      }
+      setSave((prev) => ({ ...prev, controlMode: 'arrows_motion' }));
+    } else {
+      setSave((prev) => ({ ...prev, controlMode: 'buttons' }));
+    }
+  }, [save.controlMode]);
 
   // Keyboard controls
   useEffect(() => {
@@ -154,6 +188,7 @@ export default function App() {
       up: false,
       down: false,
       space: false,
+      horn: false,
     };
 
     const syncKeys = () => {
@@ -161,6 +196,7 @@ export default function App() {
       inputRef.current.throttle = keys.up || keys.space;
       inputRef.current.brake = keys.down;
       inputRef.current.boost = keys.space;
+      inputRef.current.horn = keys.horn;
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -170,6 +206,7 @@ export default function App() {
       if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
       if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
       if (e.code === 'Space') keys.space = true;
+      if (e.code === 'KeyH') keys.horn = true;
       if (e.code === 'KeyC') cycleCamera();
       if (e.code === 'Escape' || e.code === 'KeyP') {
         setStatus((prev) =>
@@ -185,6 +222,7 @@ export default function App() {
       if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
       if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
       if (e.code === 'Space') keys.space = false;
+      if (e.code === 'KeyH') keys.horn = false;
       syncKeys();
     };
 
@@ -196,21 +234,62 @@ export default function App() {
     };
   }, [audio, cycleCamera]);
 
-  // Android / Mobile Tilt Gyroscope Steering
+  // Android / Mobile Hybrid Tilt + Shake Steering (works alongside Left/Right arrows!)
   useEffect(() => {
-    if (save.controlMode !== 'tilt' || status !== 'playing') return;
+    const motionActive =
+      save.controlMode === 'tilt' || save.controlMode === 'arrows_motion';
+    if (!motionActive || status !== 'playing') return;
+
+    let orientationSteer = 0;
+    let shakeImpulse = 0;
+    let wasMotionSteering = false;
+    let lastAccel = 0;
+
+    const applySteer = () => {
+      const combined = Math.max(
+        -1,
+        Math.min(1, orientationSteer + shakeImpulse)
+      );
+      if (Math.abs(combined) > 0.09) {
+        inputRef.current.steer = combined;
+        wasMotionSteering = true;
+      } else if (wasMotionSteering) {
+        inputRef.current.steer = 0;
+        wasMotionSteering = false;
+      }
+      shakeImpulse *= 0.85;
+    };
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
       const isLandscape = window.innerWidth > window.innerHeight;
       const raw = isLandscape ? e.beta ?? 0 : e.gamma ?? 0;
-      const clamped = Math.max(-1, Math.min(1, raw / 28));
-      inputRef.current.steer = Math.abs(clamped) < 0.08 ? 0 : clamped;
+      orientationSteer = Math.max(-1, Math.min(1, raw / 26));
+      applySteer();
+    };
+
+    const handleMotion = (e: DeviceMotionEvent) => {
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const acc = e.acceleration ?? e.accelerationIncludingGravity;
+      if (!acc) return;
+      const lateral = isLandscape ? acc.y ?? 0 : acc.x ?? 0;
+      // Detect crisp lateral shake/flick impulses as well as sustained device lean
+      const delta = lateral - lastAccel;
+      lastAccel = lateral;
+      if (Math.abs(delta) > 2.4 && e.acceleration) {
+        shakeImpulse = Math.max(-1, Math.min(1, delta / 7.5));
+      } else if (!e.acceleration && e.accelerationIncludingGravity) {
+        // Fallback when only gravity+motion is reported: map lateral tilt cleanly
+        orientationSteer = Math.max(-1, Math.min(1, -lateral / 5.5));
+      }
+      applySteer();
     };
 
     window.addEventListener('deviceorientation', handleOrientation);
+    window.addEventListener('devicemotion', handleMotion);
     return () => {
       window.removeEventListener('deviceorientation', handleOrientation);
-      inputRef.current.steer = 0;
+      window.removeEventListener('devicemotion', handleMotion);
+      if (wasMotionSteering) inputRef.current.steer = 0;
     };
   }, [save.controlMode, status]);
 
@@ -221,8 +300,10 @@ export default function App() {
       throttle: false,
       brake: false,
       boost: false,
+      horn: false,
     };
     setActiveLevel(level);
+    setMenuPreviewEndless(level === null);
     setFinalOutcome(null);
     setShowGarage(false);
     setShowLevels(false);
@@ -241,6 +322,7 @@ export default function App() {
         throttle: false,
         brake: false,
         boost: false,
+        horn: false,
       };
       setStatus(outcome);
 
@@ -266,7 +348,7 @@ export default function App() {
           );
           if (
             finalTel.levelNumber >= prev.highestUnlockedLevel &&
-            prev.highestUnlockedLevel < 100
+            prev.highestUnlockedLevel < TOTAL_LEVELS
           ) {
             nextHighest = finalTel.levelNumber + 1;
           }
@@ -350,16 +432,24 @@ export default function App() {
     { id: 'night', label: 'Night' },
   ];
 
+  const canvasLevel =
+    status === 'menu'
+      ? menuPreviewEndless
+        ? null
+        : nextCareerLevel
+      : activeLevel;
+
   return (
     <div className="relative w-full h-full overflow-hidden select-none">
       {/* Fullscreen 3D Cockpit Racing Viewport */}
       <RacingCanvas
         carId={save.selectedCarId}
         upgrades={currentUpgrades}
-        level={status === 'menu' ? nextCareerLevel : activeLevel}
+        level={canvasLevel}
         endlessBiome={endlessBiome}
         status={status}
         cameraPreset={save.cameraPreset}
+        showMiniCar={showMiniCar}
         runNonce={runNonce}
         inputRef={inputRef}
         audio={audio}
@@ -380,9 +470,16 @@ export default function App() {
           telemetry={telemetry}
           level={activeLevel}
           controlMode={save.controlMode}
+          cameraPreset={save.cameraPreset}
+          showMiniCar={showMiniCar}
           inputRef={inputRef}
           onPause={() => setStatus('paused')}
           onCycleCamera={cycleCamera}
+          onSelectCamera={(preset) =>
+            setSave((prev) => ({ ...prev, cameraPreset: preset }))
+          }
+          onToggleMotionSteer={handleToggleMotionSteer}
+          onToggleMiniCar={() => setShowMiniCar((v) => !v)}
         />
       )}
 
@@ -401,7 +498,7 @@ export default function App() {
                   NEW BABY DRIVER
                 </h1>
                 <p className="text-[11px] text-slate-400 mt-0.5 whitespace-nowrap">
-                  3D Cockpit Highway Racing · 100 Levels
+                  3D Cockpit Highway Racing · {TOTAL_LEVELS} Levels
                 </p>
               </div>
             </div>
@@ -494,7 +591,7 @@ export default function App() {
                     </span>
                     <span className="text-white/25">·</span>
                     <span>
-                      LVL {save.highestUnlockedLevel}/100
+                      LVL {save.highestUnlockedLevel}/{TOTAL_LEVELS}
                     </span>
                   </div>
                 </div>
@@ -522,7 +619,7 @@ export default function App() {
                   className="flex items-center gap-2 px-3.5 py-2.5 rounded bg-[#23262f] hover:bg-[#2d313d] border border-white/15 text-sm font-display font-bold text-white cursor-pointer whitespace-nowrap"
                 >
                   <MapPin className="w-4 h-4 text-sky-400" />
-                  100 LEVELS
+                  {TOTAL_LEVELS} LEVELS
                 </button>
 
                 <button
@@ -535,7 +632,10 @@ export default function App() {
 
                 <button
                   type="button"
-                  onClick={() => startRace(nextCareerLevel)}
+                  onClick={() => {
+                    setMenuPreviewEndless(false);
+                    startRace(nextCareerLevel);
+                  }}
                   className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-sm sm:text-base font-display font-bold text-slate-950 transition cursor-pointer whitespace-nowrap"
                 >
                   <Play className="w-4 h-4 fill-slate-950" />
@@ -544,7 +644,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Endless Road Biome Quick Picker */}
+            {/* Endless Road Biome Quick Picker (previews live in 3D when clicked!) */}
             <div className="mt-2.5 pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="text-slate-400">
                 Endless Road Environment:
@@ -554,7 +654,10 @@ export default function App() {
                   <button
                     key={b.id}
                     type="button"
-                    onClick={() => setEndlessBiome(b.id)}
+                    onClick={() => {
+                      setEndlessBiome(b.id);
+                      setMenuPreviewEndless(true);
+                    }}
                     className={`px-2.5 py-1 rounded font-semibold transition cursor-pointer whitespace-nowrap ${
                       endlessBiome === b.id
                         ? 'bg-sky-500 text-slate-950'
@@ -603,7 +706,7 @@ export default function App() {
                 onClick={() => setShowSettings(true)}
                 className="w-full py-2.5 rounded bg-white/10 hover:bg-white/15 text-white font-display font-bold text-sm cursor-pointer"
               >
-                CONTROLS & AUDIO
+                CONTROLS &amp; AUDIO
               </button>
               <button
                 type="button"
@@ -701,7 +804,7 @@ export default function App() {
               <div className="mt-5 flex flex-col gap-2">
                 {finalOutcome.outcome === 'won' &&
                   activeLevel &&
-                  activeLevel.levelNumber < 100 && (
+                  activeLevel.levelNumber < TOTAL_LEVELS && (
                     <button
                       type="button"
                       onClick={() =>
@@ -762,7 +865,7 @@ export default function App() {
         />
       )}
 
-      {/* 100-Level Career Selector */}
+      {/* 550-Level Career Selector */}
       {showLevels && (
         <LevelsModal
           save={save}

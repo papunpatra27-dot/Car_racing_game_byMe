@@ -130,7 +130,10 @@ export const GarageModal: React.FC<GarageModalProps> = ({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setInspectedCarId(item.id)}
+                  onClick={() => {
+                    setInspectedCarId(item.id);
+                    if (owned) onSelectCar(item.id);
+                  }}
                   className={`group relative flex flex-col w-52 sm:w-64 rounded-sm overflow-hidden bg-[#f4f5f7] text-left transition cursor-pointer ${
                     inspecting
                       ? 'ring-3 ring-amber-400 shadow-lg'

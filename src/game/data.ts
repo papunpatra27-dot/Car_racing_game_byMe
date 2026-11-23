@@ -16,7 +16,7 @@ export const CARS: CarSpec[] = [
     image: '/src/assets/images/car_compact_blue_1795357892220.jpg',
     scoreMultiplier: 1.5,
     unlockCost: 0,
-    bodyColor: 0x1678d4,
+    bodyColor: 0x1b62c8,
     interiorColor: 0x3b3530,
     dashColor: 0x2b2927,
     accentColor: 0x38bdf8,
@@ -36,7 +36,7 @@ export const CARS: CarSpec[] = [
     image: '/src/assets/images/car_sedan_red_1795357892600.jpg',
     scoreMultiplier: 2.0,
     unlockCost: 1200,
-    bodyColor: 0xd92638,
+    bodyColor: 0xbe182b,
     interiorColor: 0x26282e,
     dashColor: 0x1b1d22,
     accentColor: 0xef4444,
@@ -56,7 +56,7 @@ export const CARS: CarSpec[] = [
     image: '/src/assets/images/car_muscle_green_1795357893266.jpg',
     scoreMultiplier: 2.5,
     unlockCost: 2600,
-    bodyColor: 0x157a4c,
+    bodyColor: 0x0f6b40,
     interiorColor: 0x1f2220,
     dashColor: 0x181a18,
     accentColor: 0x34d399,
@@ -76,7 +76,7 @@ export const CARS: CarSpec[] = [
     image: '/src/assets/images/car_super_red_1795357893714.jpg',
     scoreMultiplier: 3.0,
     unlockCost: 4800,
-    bodyColor: 0xe81e25,
+    bodyColor: 0xe31c23,
     interiorColor: 0x1c1c20,
     dashColor: 0x131316,
     accentColor: 0xf59e0b,
@@ -96,7 +96,7 @@ export const CARS: CarSpec[] = [
     image: '/src/assets/images/car_gt_yellow_1795357894340.jpg',
     scoreMultiplier: 3.5,
     unlockCost: 7500,
-    bodyColor: 0xfacc15,
+    bodyColor: 0xf5c408,
     interiorColor: 0x18191d,
     dashColor: 0x111216,
     accentColor: 0xfbbf24,
@@ -116,10 +116,10 @@ export const CARS: CarSpec[] = [
     image: '/src/assets/images/car_hyper_obsidian_1795357893429.jpg',
     scoreMultiplier: 4.0,
     unlockCost: 12000,
-    bodyColor: 0x1e2028,
+    bodyColor: 0x1c1e26,
     interiorColor: 0x141519,
     dashColor: 0x0f1014,
-    accentColor: 0xf59e0b,
+    accentColor: 0xd4af37,
     dashStyle: 'hyper',
     enginePitch: 1.54,
     baseStats: {
@@ -131,86 +131,88 @@ export const CARS: CarSpec[] = [
   },
 ];
 
+export const TOTAL_LEVELS = 550;
+
 export const BIOMES: Record<BiomeId, BiomeConfig> = {
   city: {
     id: 'city',
-    name: 'City Boulevard',
-    chapterTitle: 'Chapter 1 · Metro Grid (Levels 1–20)',
-    skyColor: 0xc2d5e8,
-    fogColor: 0xc6d6e6,
-    fogDensity: 0.0042,
-    ambientSky: 0xdbeafe,
-    ambientGround: 0x4b5563,
-    sunColor: 0xfff7ed,
-    sunIntensity: 1.65,
-    groundColor: 0x6b7280,
-    shoulderColor: 0x9ca3af,
-    asphaltColor: '#484d57',
-    centerLineColor: '#f8fafc',
+    name: 'Metro Skyline',
+    chapterTitle: 'Urban Express · Downtown & Bridges',
+    skyColor: 0x77b8ea,
+    fogColor: 0xb6dbf4,
+    fogDensity: 0.0031,
+    ambientSky: 0xe0f2fe,
+    ambientGround: 0x475569,
+    sunColor: 0xfff8eb,
+    sunIntensity: 1.9,
+    groundColor: 0x525b68,
+    shoulderColor: 0x94a3b8,
+    asphaltColor: '#363b45',
+    centerLineColor: '#fbbf24',
     isNight: false,
   },
   mountain: {
     id: 'mountain',
     name: 'Pine Mountain Pass',
-    chapterTitle: 'Chapter 2 · Alpine Pines (Levels 21–40)',
+    chapterTitle: 'Alpine Pines · Winding Ridge',
     skyColor: 0xb7d9f2,
     fogColor: 0xc8e1f0,
-    fogDensity: 0.0046,
+    fogDensity: 0.0042,
     ambientSky: 0xdbeafe,
     ambientGround: 0x3f4f38,
     sunColor: 0xfffbeb,
-    sunIntensity: 1.75,
-    groundColor: 0x5c6b43,
+    sunIntensity: 1.78,
+    groundColor: 0x56693e,
     shoulderColor: 0x7a7f6c,
-    asphaltColor: '#4f545c',
+    asphaltColor: '#484d56',
     centerLineColor: '#f8fafc',
     isNight: false,
   },
   desert: {
     id: 'desert',
     name: 'Red Rock Canyon',
-    chapterTitle: 'Chapter 3 · Desert Sunset (Levels 41–60)',
+    chapterTitle: 'Desert Sunset · Mesa Sweepers',
     skyColor: 0xe8b282,
     fogColor: 0xe8b68a,
-    fogDensity: 0.0048,
+    fogDensity: 0.0044,
     ambientSky: 0xfde68a,
     ambientGround: 0x7c4a2d,
     sunColor: 0xffedd5,
-    sunIntensity: 1.85,
+    sunIntensity: 1.88,
     groundColor: 0xb5764c,
     shoulderColor: 0xc7956d,
-    asphaltColor: '#3f3d42',
+    asphaltColor: '#3d3b42',
     centerLineColor: '#fbbf24',
     isNight: false,
   },
   coastal: {
     id: 'coastal',
     name: 'Pacific Causeway',
-    chapterTitle: 'Chapter 4 · Ocean Bridge (Levels 61–80)',
-    skyColor: 0x93c5fd,
-    fogColor: 0xbae6fd,
-    fogDensity: 0.0038,
+    chapterTitle: 'Ocean Bridge · Sea Breeze Straight',
+    skyColor: 0x8cc3fa,
+    fogColor: 0xb8e4fc,
+    fogDensity: 0.0035,
     ambientSky: 0xe0f2fe,
     ambientGround: 0x0e7490,
     sunColor: 0xffffff,
-    sunIntensity: 1.8,
+    sunIntensity: 1.85,
     groundColor: 0x0d6b8a,
     shoulderColor: 0x94a3b8,
-    asphaltColor: '#474c54',
+    asphaltColor: '#454b54',
     centerLineColor: '#f8fafc',
     isNight: false,
   },
   night: {
     id: 'night',
     name: 'Midnight Expressway',
-    chapterTitle: 'Chapter 5 · Neon Night (Levels 81–100)',
+    chapterTitle: 'Neon Night · High-Speed Beltway',
     skyColor: 0x0b1020,
     fogColor: 0x0e152b,
-    fogDensity: 0.0055,
+    fogDensity: 0.0052,
     ambientSky: 0x334155,
     ambientGround: 0x090d16,
     sunColor: 0x93c5fd,
-    sunIntensity: 0.75,
+    sunIntensity: 0.85,
     groundColor: 0x161b26,
     shoulderColor: 0x262c3a,
     asphaltColor: '#1f232b',
@@ -220,6 +222,20 @@ export const BIOMES: Record<BiomeId, BiomeConfig> = {
 };
 
 const BIOME_ORDER: BiomeId[] = ['city', 'mountain', 'desert', 'coastal', 'night'];
+
+const TIER_NAMES = [
+  'Rookie',
+  'Street',
+  'Touring',
+  'Cruiser',
+  'Apex',
+  'Turbo',
+  'Pro',
+  'Master',
+  'Grand',
+  'Legend',
+  'World',
+];
 
 const STAGE_ADJECTIVES = [
   'Morning',
@@ -245,42 +261,59 @@ const STAGE_ADJECTIVES = [
 ];
 
 const BIOME_NOUNS: Record<BiomeId, string[]> = {
-  city: ['Avenue', 'Boulevard', 'Loop', 'Viaduct', 'District'],
-  mountain: ['Pass', 'Ridge', 'Timberway', 'Climb', 'Valley'],
+  city: ['Avenue', 'Boulevard', 'Skyline', 'Viaduct', 'District'],
+  mountain: ['Pass', 'Ridge', 'Timberway', 'Switchback', 'Valley'],
   desert: ['Mesa', 'Freeway', 'Gorge', 'Stretch', 'Corridor'],
   coastal: ['Causeway', 'Bridge', 'Bayway', 'Overpass', 'Straits'],
   night: ['Expressway', 'Beltway', 'Tunnel', 'Skyway', 'Autobahn'],
 };
 
-export const LEVELS: LevelConfig[] = Array.from({ length: 100 }, (_, idx) => {
+export const LEVELS: LevelConfig[] = Array.from({ length: TOTAL_LEVELS }, (_, idx) => {
   const levelNumber = idx + 1;
-  const chapterIndex = Math.floor(idx / 20);
-  const posInChapter = idx % 20;
-  const biome = BIOME_ORDER[chapterIndex];
-  const adj = STAGE_ADJECTIVES[posInChapter];
-  const noun = BIOME_NOUNS[biome][posInChapter % 5];
+  const tierIdx = Math.floor(idx / 100); // 100 levels per major tier cycle across all 5 biomes
+  const blockIdx = Math.floor((idx % 100) / 20); // cycles City -> Mountain -> Desert -> Coastal -> Night every 20 levels
+  const posInBlock = idx % 20;
+  const biome = BIOME_ORDER[blockIdx];
+  const tierPrefix = tierIdx > 0 ? `${TIER_NAMES[Math.min(TIER_NAMES.length - 1, tierIdx)]} ` : '';
+  const adj = STAGE_ADJECTIVES[posInBlock];
+  const noun = BIOME_NOUNS[biome][posInBlock % 5];
 
   const lanes: 3 | 4 = levelNumber % 3 === 0 || levelNumber > 40 ? 4 : 3;
   const twoWayTraffic =
-    levelNumber >= 12 && (levelNumber % 2 === 0 || levelNumber > 50);
+    levelNumber >= 10 && (levelNumber % 2 === 0 || levelNumber > 60);
 
-  // Target distance scales smoothly from 1,100m on Level 1 to 6,200m on Level 100
-  const targetDistanceM = Math.round(1100 + idx * 51.5);
+  // Progress ratio 0..1 across 550 levels with gentle periodic waves so difficulty feels rewarding
+  const progress = idx / (TOTAL_LEVELS - 1);
+  const wave = (idx % 20) / 20;
 
-  // Traffic density scales from 7 cars to 21 cars active ahead
-  const trafficDensity = Math.min(21, 7 + Math.floor(idx / 7));
+  // Target distance scales smoothly from 1,000m (Lvl 1) up to 7,400m (Lvl 550)
+  const targetDistanceM = Math.round(1000 + progress * 5800 + wave * 600);
 
-  // Traffic speeds scale from 72 km/h to 148 km/h
-  const trafficSpeedKmh = Math.round(72 + idx * 0.76);
+  // Traffic density scales from 6 cars to 24 active cars
+  const trafficDensity = Math.min(24, 6 + Math.floor(progress * 16 + wave * 2));
 
-  // Fuel drain slightly increases in higher levels, encouraging garage fuel upgrades
-  const fuelDrainFactor = Number((0.92 + idx * 0.0085).toFixed(3));
+  // Traffic speed scales from 70 km/h to 166 km/h
+  const trafficSpeedKmh = Math.round(70 + progress * 88 + wave * 8);
 
-  const coinReward = Math.round(180 + idx * 24 + (posInChapter === 19 ? 400 : 0));
+  // Fuel drain gradually rises across 550 levels
+  const fuelDrainFactor = Number((0.9 + progress * 0.65).toFixed(3));
+
+  // Road curves & hills on every level (stronger in mountain/coastal/higher tiers)
+  const biomeCurveMult =
+    biome === 'mountain' ? 1.25 : biome === 'coastal' ? 1.05 : biome === 'city' ? 0.85 : 1.0;
+  const curveIntensity = Number(
+    Math.min(1.35, (0.42 + progress * 0.72 + wave * 0.16) * biomeCurveMult).toFixed(2)
+  );
+  const hillIntensity = Number(
+    Math.min(1.15, 0.3 + progress * 0.6 + (biome === 'mountain' ? 0.25 : 0)).toFixed(2)
+  );
+  const hasRoadwork = levelNumber >= 4 && levelNumber % 3 !== 1;
+
+  const coinReward = Math.round(180 + idx * 12 + (posInBlock === 19 ? 500 : 0));
 
   return {
     levelNumber,
-    name: `${adj} ${noun}`,
+    name: `${tierPrefix}${adj} ${noun}`,
     biome,
     lanes,
     twoWayTraffic,
@@ -289,6 +322,9 @@ export const LEVELS: LevelConfig[] = Array.from({ length: 100 }, (_, idx) => {
     trafficSpeedKmh,
     fuelDrainFactor,
     coinReward,
+    curveIntensity,
+    hillIntensity,
+    hasRoadwork,
   };
 });
 
@@ -345,7 +381,7 @@ export const INITIAL_SAVE_STATE: SaveState = {
   highestUnlockedLevel: 1,
   levelStars: {},
   bestEndlessScore: 0,
-  controlMode: 'buttons',
+  controlMode: 'arrows_motion',
   cameraPreset: 'cockpit',
   soundEnabled: true,
 };
@@ -381,3 +417,17 @@ export function persistSaveState(state: SaveState): void {
     // ignore quota errors
   }
 }
+
+export function getMyCarPipRect(viewW: number, viewH: number) {
+  const safeW = Math.max(320, viewW);
+  const isMobile = safeW < 640;
+  const width = isMobile
+    ? Math.min(126, Math.round(safeW * 0.31))
+    : Math.min(194, Math.round(safeW * 0.19));
+  const height = Math.round(width * 0.72);
+  const left = isMobile ? 10 : 16;
+  const maxTop = Math.max(58, viewH - height - 120);
+  const top = Math.min(maxTop, isMobile ? 88 : 76);
+  return { left, top, width, height };
+}
+

@@ -4,6 +4,10 @@ export class RacingAudioEngine {
   private osc2: OscillatorNode | null = null;
   private engineGain: GainNode | null = null;
   private filter: BiquadFilterNode | null = null;
+  private hornOsc1: OscillatorNode | null = null;
+  private hornOsc2: OscillatorNode | null = null;
+  private hornGain: GainNode | null = null;
+  private hornActive = false;
   private enabled = true;
   private initialized = false;
 
@@ -15,6 +19,9 @@ export class RacingAudioEngine {
         this.ctx.currentTime,
         0.05
       );
+    }
+    if (!val) {
+      this.setHorn(false);
     }
   }
 
@@ -56,7 +63,42 @@ export class RacingAudioEngine {
 
       this.osc1.start();
       this.osc2.start();
+
+      // Dual-tone car horn (F4 + A4 harmony through warm bandpass/lowpass)
+      this.hornOsc1 = this.ctx.createOscillator();
+      this.hornOsc2 = this.ctx.createOscillator();
+      const hornFilter = this.ctx.createBiquadFilter();
+      this.hornGain = this.ctx.createGain();
+
+      this.hornOsc1.type = 'sawtooth';
+      this.hornOsc2.type = 'triangle';
+      this.hornOsc1.frequency.value = 392; // G4
+      this.hornOsc2.frequency.value = 493.88; // B4
+
+      hornFilter.type = 'lowpass';
+      hornFilter.frequency.value = 1350;
+      hornFilter.Q.value = 1.6;
+
+      this.hornGain.gain.value = 0;
+
+      this.hornOsc1.connect(hornFilter);
+      this.hornOsc2.connect(hornFilter);
+      hornFilter.connect(this.hornGain);
+      this.hornGain.connect(this.ctx.destination);
+
+      this.hornOsc1.start();
+      this.hornOsc2.start();
     }
+  }
+
+  setHorn(active: boolean): void {
+    if (!this.ctx || !this.hornGain) return;
+    const shouldPlay = active && this.enabled;
+    if (shouldPlay === this.hornActive) return;
+    this.hornActive = shouldPlay;
+    const now = this.ctx.currentTime;
+    this.hornGain.gain.cancelScheduledValues(now);
+    this.hornGain.gain.setTargetAtTime(shouldPlay ? 0.14 : 0, now, 0.018);
   }
 
   updateEngine(
@@ -70,6 +112,7 @@ export class RacingAudioEngine {
     const now = this.ctx.currentTime;
     if (!this.enabled || !active) {
       this.engineGain.gain.setTargetAtTime(0, now, 0.08);
+      this.setHorn(false);
       return;
     }
 
@@ -108,6 +151,22 @@ export class RacingAudioEngine {
     gain.connect(this.ctx.destination);
     osc.start(now);
     osc.stop(now + 0.19);
+  }
+
+  playBoostPad(): void {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(210, now);
+    osc.frequency.exponentialRampToValueAtTime(660, now + 0.22);
+    gain.gain.setValueAtTime(0.09, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.25);
   }
 
   playClosePass(): void {
@@ -165,6 +224,8 @@ export class RacingAudioEngine {
     try {
       this.osc1?.stop();
       this.osc2?.stop();
+      this.hornOsc1?.stop();
+      this.hornOsc2?.stop();
       this.ctx?.close();
     } catch {
       // ignore

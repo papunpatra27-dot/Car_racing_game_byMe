@@ -2,9 +2,9 @@ export type BiomeId = 'city' | 'mountain' | 'desert' | 'coastal' | 'night';
 
 export type DashStyle = 'classic' | 'modern' | 'muscle' | 'super' | 'gt' | 'hyper';
 
-export type ControlMode = 'buttons' | 'wheel' | 'tilt';
+export type ControlMode = 'arrows_motion' | 'buttons' | 'wheel' | 'tilt';
 
-export type CameraPreset = 'cockpit' | 'dash' | 'hood';
+export type CameraPreset = 'cockpit' | 'chase' | 'dash' | 'hood';
 
 export interface CarUpgrades {
   engine: number; // 1..5
@@ -72,6 +72,9 @@ export interface LevelConfig {
   trafficSpeedKmh: number;
   fuelDrainFactor: number;
   coinReward: number;
+  curveIntensity: number; // 0..1.35 road curvature scale
+  hillIntensity: number; // 0..1.2 road elevation variation
+  hasRoadwork: boolean;
 }
 
 export type GameStatus =
@@ -117,4 +120,5 @@ export interface InputState {
   throttle: boolean;
   brake: boolean;
   boost: boolean;
+  horn: boolean;
 }

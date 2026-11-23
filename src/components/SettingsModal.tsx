@@ -224,7 +224,7 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
     }
   };
 
-  const requestTiltPermission = async () => {
+  const requestMotionPermission = async (mode: 'arrows_motion' | 'tilt') => {
     const DevOrient = DeviceOrientationEvent as unknown as {
       requestPermission?: () => Promise<'granted' | 'denied'>;
     };
@@ -235,14 +235,29 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
         // ignore
       }
     }
-    onUpdateSettings({ controlMode: 'tilt' });
+    const DevMotion = DeviceMotionEvent as unknown as {
+      requestPermission?: () => Promise<'granted' | 'denied'>;
+    };
+    if (typeof DevMotion?.requestPermission === 'function') {
+      try {
+        await DevMotion.requestPermission();
+      } catch {
+        // ignore
+      }
+    }
+    onUpdateSettings({ controlMode: mode });
   };
 
   const controlOptions: { id: ControlMode; label: string; desc: string }[] = [
     {
+      id: 'arrows_motion',
+      label: 'Arrows + Shake / Tilt Device',
+      desc: 'Left/Right arrows PLUS shake or tilt your phone to steer',
+    },
+    {
       id: 'buttons',
-      label: 'Touch Arrows',
-      desc: 'Left/Right thumb pads + Gas & Brake pedals',
+      label: 'Touch Arrows Only',
+      desc: 'Left/Right thumb pads + Gas, Brake & Horn',
     },
     {
       id: 'wheel',
@@ -251,13 +266,14 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
     },
     {
       id: 'tilt',
-      label: 'Phone Tilt (Gyro)',
-      desc: 'Tilt Android/iOS device left & right to steer',
+      label: 'Shake / Tilt Device Only',
+      desc: 'Hands-free phone tilt & shake steering',
     },
   ];
 
   const cameraOptions: { id: CameraPreset; label: string }[] = [
-    { id: 'cockpit', label: 'Cockpit Driver' },
+    { id: 'cockpit', label: 'Cockpit + Car' },
+    { id: 'chase', label: 'Full Car + Wheel' },
     { id: 'dash', label: 'Dash Close' },
     { id: 'hood', label: 'Hood Cam' },
   ];
@@ -325,8 +341,8 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
                         key={opt.id}
                         type="button"
                         onClick={() =>
-                          opt.id === 'tilt'
-                            ? requestTiltPermission()
+                          opt.id === 'tilt' || opt.id === 'arrows_motion'
+                            ? requestMotionPermission(opt.id)
                             : onUpdateSettings({ controlMode: opt.id })
                         }
                         className={`flex items-center justify-between p-3 rounded border text-left transition cursor-pointer ${
@@ -361,13 +377,13 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
                   <Camera className="w-3.5 h-3.5" />
                   Camera View
                 </h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {cameraOptions.map((cam) => (
                     <button
                       key={cam.id}
                       type="button"
                       onClick={() => onUpdateSettings({ cameraPreset: cam.id })}
-                      className={`py-2 px-3 rounded text-xs font-bold transition cursor-pointer ${
+                      className={`py-2 px-2.5 rounded text-xs font-bold transition cursor-pointer ${
                         save.cameraPreset === cam.id
                           ? 'bg-amber-500 text-slate-950'
                           : 'bg-[#23262e] text-slate-300 hover:bg-white/10'
@@ -388,10 +404,10 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
                   )}
                   <div>
                     <div className="text-sm font-bold text-white">
-                      Engine &amp; Effects Audio
+                      Engine, Horn &amp; Road Audio
                     </div>
                     <div className="text-xs text-slate-400">
-                      Synthesized RPM engine note &amp; road SFX
+                      Synthesized RPM engine note, dual-tone horn &amp; SFX
                     </div>
                   </div>
                 </div>
@@ -423,7 +439,7 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
                 ) : (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-rose-300">
-                      Reset all coins, cars &amp; 100 levels?
+                      Reset all coins, cars &amp; 550 levels?
                     </span>
                     <button
                       type="button"
@@ -445,7 +461,7 @@ Sign the generated \`.aab\` with your upload keystore and upload it to Google Pl
                   </div>
                 )}
                 <span className="text-[11px] text-slate-500">
-                  Keyboard: A/D or Arrows + W/S
+                  Keys: A/D + W/S + H Horn
                 </span>
               </div>
             </>
